@@ -5,48 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Classification Model</title>
     <style>
-        /* Ensure the body is full-height and has no scrollbar */
+        
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden;
+            /*overflow: hidden;*/
         }
 
         .container {
             display: flex;
             flex-direction: row;
-            height: 90vh; /* Adjust height to leave space for the heading */
-            overflow: hidden;
+            height: 85vh;
+            /*overflow: hidden;*/
         }
 
-        /* Style the heading */
         .main-heading {
             text-align: center;
             font-size: 36px;
             margin-top: 20px;
             color: #333;
             font-weight: bold;
-            margin-bottom: 20px; /* Add space below the heading */
+            margin-bottom: 20px;
         }
 
-        /* Left panel styles */
         .left-panel {
             flex: 1;
             padding: 20px;
             box-sizing: border-box;
             border-right: 1px solid #ccc;
             display: flex;
-            flex-direction: column; /* Center content vertically */
+            flex-direction: column;
             align-items: center;
-            border: 2px solid grey; /* Rectangular border with color */
-            border-radius: 8px; /* Optional: rounded corners */
+            border: 2px solid grey;
+            border-radius: 8px; 
             padding: 20px;
             margin: 20px;
         }
 
-        /* Right panel styles */
         .right-panel {
             display: flex;
             flex-direction: column;
@@ -60,11 +57,9 @@
             flex: 1;
             margin-bottom: 20px;
             padding: 20px;
-            border: 2px solid grey; /* Flex border */
-            border-radius: 8px; /* Optional: rounded corners */
+            border: 2px solid grey;
+            border-radius: 8px;
         }
-
-        
 
         .center {
             text-align: center;
@@ -74,7 +69,6 @@
             margin-top: 0;
         }
 
-        /* Drop zone and file input styles */
         .drop-zone {
             border: 2px dashed #ccc;
             border-radius: 8px;
@@ -94,9 +88,7 @@
 
         #image-preview {
             max-width: 100%;
-            max-height: 350px;
-            width: auto;
-            height: auto;
+            max-height: 200px;
             display: none;
             align-items: center; /* Initially hidden */
         }
@@ -144,11 +136,11 @@
     </style>
 </head>
 <body>
-    <!-- Main Heading -->
+    
     <h1 class="main-heading">Image Classification</h1>
 
     <div class="container">
-        <!-- Left Panel -->
+        
         <div class="left-panel">
             <form id="image-form" action="/" method="post" enctype="multipart/form-data">
                 <h2 class="center">Upload Image</h2>
@@ -161,9 +153,8 @@
             </form>
         </div>
 
-        <!-- Right Panel -->
         <div class="right-panel">
-            <!-- Prediction Section -->
+            
             <div class="prediction-box">
                 <h2 class="center">Prediction</h2>
                 {% if step=="result" %}
@@ -174,7 +165,6 @@
                 {% endif %}
             </div>
 
-            <!-- Validation Section -->
             <div class="validation-box">
                 <h2 class="center">Please Validate!</h2>
                 {% if step=="result" %}
@@ -190,7 +180,7 @@
                         <div class="center">
                             <label for="correct_label">If incorrect, please select the correct label:</label>
                             <select id="correct_label" name="correct_label">
-                                <option value="">Select label</option> <!-- Option to let the user choose -->
+                                <option value="">Select label</option>
                                 <option value="hoodie">Hoodie</option>
                                 <option value="pants">Pants</option>
                                 <option value="shirts">Shirts</option>
@@ -219,13 +209,11 @@
         const selectElement = document.getElementById('correct_label');
         const incorrectButton = document.getElementById('incorrect-button');
 
-        // Highlight drop zone on drag over
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('dragover');
         });
 
-        // Remove highlight on drag leave
         dropZone.addEventListener('dragleave', () => {
             dropZone.classList.remove('dragover');
         });
@@ -235,50 +223,49 @@
             e.preventDefault();
             dropZone.classList.remove('dragover');
             const file = e.dataTransfer.files[0];
-            fileInput.files = e.dataTransfer.files; // Assign dropped file to the input
-            previewImage(file); // Preview the dropped image
+            fileInput.files = e.dataTransfer.files;
+            previewImage(file);
         });
 
-        // Trigger file input click on drop zone click
         dropZone.addEventListener('click', () => {
             fileInput.click();
         });
 
-        // Handle file selection via file input
         fileInput.addEventListener('change', () => {
             const file = fileInput.files[0];
-            previewImage(file); // Preview the selected image
+            previewImage(file);
         });
 
-        // Preview the selected image
         function previewImage(file) {
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block'; // Show the image preview
+                    imagePreview.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             }
         }
 
         submitButton.addEventListener('click', (event) => {
-            event.preventDefault(); // Prevent the default button behavior
+            event.preventDefault();
             if (fileInput.files.length === 0) {
                 alert('Please upload an image first!');
             } else {
-                form.submit(); // Submit the form
+                form.submit();
             }
         });
-        selectElement.addEventListener('change', function () {
-            if (selectElement.value !== "") {
-                incorrectButton.disabled = false;
-                incorrectButton.style.backgroundColor = "orange";
-            } else {
-                incorrectButton.disabled = true;
-                incorrectButton.style.backgroundColor = "#ccc";
-            }
-        });
+        if(selectElement !== null) {
+            selectElement.addEventListener('change', function () {
+                if (selectElement.value !== "") {
+                    incorrectButton.disabled = false;
+                    incorrectButton.style.backgroundColor = "orange";
+                } else {
+                    incorrectButton.disabled = true;
+                    incorrectButton.style.backgroundColor = "#ccc";
+                }
+            });
+        }
     </script>
 </body>
 </html>

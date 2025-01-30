@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classification Model</title>
+    <style>
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            /*overflow: hidden;*/
+        }
+
+        .main-heading {
+            text-align: center;
+            margin-top: 20px;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            height: 85vh;
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+            border-right: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid grey;
+            border-radius: 8px; 
+            padding: 20px;
+            margin: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .drop-zone.dragover {
+            border-color: #ff9900;
+        }
+
+        .drop-zone input[type="file"] {
+            display: none;
+        }
+
+        #image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            display: none;
+            align-items: center; /* Initially hidden */
+        }
+
+        #submit-button {
+            background-color: rgb(32, 211, 32);
+        }
+
+        #submit-button:hover {
+            background-color: green;
+        }
+
+        button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    
+    <h1 class="main-heading">Image Classification</h1>
+
+    <div class="container">
+        
+        <form id="image-form" action="/predict" method="post" enctype="multipart/form-data">
+            <h2 class="center">Upload Image</h2>
+            <div id="drop-zone" class="drop-zone">
+                <p>Drag and drop an image here, or click to upload.</p>
+                <input type="file" id="file-input" name="image" accept="image/*">
+            </div>
+            <img id="image-preview" alt="Image Preview">
+            <button id="submit-button" type="submit">Submit</button>
+        </form>
+        
+    </div>
+    
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const imagePreview = document.getElementById('image-preview');
+        const submitButton = document.getElementById('submit-button');
+        const form = document.getElementById('image-form');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            fileInput.files = e.dataTransfer.files;
+            previewImage(file);
+        });
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            previewImage(file);
+        });
+
+        function previewImage(file) {
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        submitButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            if (fileInput.files.length === 0) {
+                alert('Please upload an image first!');
+            } else {
+                form.submit();
+            }
+        });
+
+    </script>
+</body>
+</html>
