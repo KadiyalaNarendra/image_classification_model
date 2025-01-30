@@ -24,11 +24,11 @@ def predict(image):
 with gr.Blocks() as demo:
     gr.Markdown("<h1 style='text-align: center;'>Image Classification</h1>")
     with gr.Row():
-        with gr.Column(scale=1):  # Adjust scale to control width
+        with gr.Column(scale=1):
             img_input = gr.Image(label="Upload Image", type="pil")
             submit_button = gr.Button("Submit")
         
-        with gr.Column(scale=1):  # Adjust scale to control width
+        with gr.Column(scale=1):
             output_text = gr.Textbox(label="Prediction", interactive=False)
             
     submit_button.click(fn=predict, inputs=img_input, outputs=output_text)
