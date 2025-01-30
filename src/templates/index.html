@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classification Model</title>
+    <style>
+        /* Ensure the body is full-height and has no scrollbar */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            height: 90vh; /* Adjust height to leave space for the heading */
+            overflow: hidden;
+        }
+
+        /* Style the heading */
+        .main-heading {
+            text-align: center;
+            font-size: 36px;
+            margin-top: 20px;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 20px; /* Add space below the heading */
+        }
+
+        /* Left panel styles */
+        .left-panel {
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+            border-right: 1px solid #ccc;
+            display: flex;
+            flex-direction: column; /* Center content vertically */
+            align-items: center;
+            border: 2px solid grey; /* Rectangular border with color */
+            border-radius: 8px; /* Optional: rounded corners */
+            padding: 20px;
+            margin: 20px;
+        }
+
+        /* Right panel styles */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .prediction-box, .validation-box {
+            flex: 1;
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 2px solid grey; /* Flex border */
+            border-radius: 8px; /* Optional: rounded corners */
+        }
+
+        
+
+        .center {
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        /* Drop zone and file input styles */
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .drop-zone.dragover {
+            border-color: #ff9900;
+        }
+
+        .drop-zone input[type="file"] {
+            display: none;
+        }
+
+        #image-preview {
+            max-width: 100%;
+            max-height: 350px;
+            width: auto;
+            height: auto;
+            display: none;
+            align-items: center; /* Initially hidden */
+        }
+
+        #submit-button {
+            background-color: rgb(32, 211, 32);
+        }
+
+        #submit-button:hover {
+            background-color: green;
+        }
+
+        button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .validation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .validation-buttons button {
+            flex: 1;
+            margin: 0 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .validation-buttons button:first-child {
+            margin-left: 0;
+        }
+
+        .validation-buttons button:last-child {
+            margin-right: 0;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Main Heading -->
+    <h1 class="main-heading">Image Classification</h1>
+
+    <div class="container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <form id="image-form" action="/" method="post" enctype="multipart/form-data">
+                <h2 class="center">Upload Image</h2>
+                <div id="drop-zone" class="drop-zone">
+                    <p>Drag and drop an image here, or click to upload.</p>
+                    <input type="file" id="file-input" name="file" accept="image/*">
+                </div>
+                <img id="image-preview" alt="Image Preview">
+                <button id="submit-button" type="submit">Submit</button>
+            </form>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <!-- Prediction Section -->
+            <div class="prediction-box">
+                <h2 class="center">Prediction</h2>
+                {% if step=="result" %}
+                    <p class="center"><strong>Class:</strong> {{ predicted_class }}</p>
+                    <p class="center"><strong>Confidence:</strong> {{ confidence }}%</p>
+                {% else %}
+                    <p class="center">No image uploaded yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- Validation Section -->
+            <div class="validation-box">
+                <h2 class="center">Please Validate!</h2>
+                {% if step=="result" %}
+                    <form action="/" method="post">
+                        <input type="hidden" name="image_path" value="{{ image_path }}">
+                        <input type="hidden" name="predicted_class" value="{{ prediction }}">
+
+                        <div class="validation-buttons">
+                            <button type="submit" name="feedback" value="Correct" style="background-color: rgb(32, 211, 32);">Correct</button>
+                            <button id="incorrect-button" type="submit" name="feedback" value="Incorrect" style="background-color: #ccc;" disabled>Incorrect</button>
+                        </div>
+
+                        <div class="center">
+                            <label for="correct_label">If incorrect, please select the correct label:</label>
+                            <select id="correct_label" name="correct_label">
+                                <option value="">Select label</option> <!-- Option to let the user choose -->
+                                <option value="hoodie">Hoodie</option>
+                                <option value="pants">Pants</option>
+                                <option value="shirts">Shirts</option>
+                                <option value="shoes">Shoes</option>
+                                <option value="shorts">Shorts</option>
+                            </select>
+                        </div>
+                    </form>
+                {% else %}
+                    <p class="center">Upload an image to validate the prediction.</p>
+                {% endif %}
+
+                {% if message %}
+                    <p class="center"><strong>{{ message }}</strong></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const imagePreview = document.getElementById('image-preview');
+        const submitButton = document.getElementById('submit-button');
+        const form = document.getElementById('image-form');
+        const selectElement = document.getElementById('correct_label');
+        const incorrectButton = document.getElementById('incorrect-button');
+
+        // Highlight drop zone on drag over
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        // Remove highlight on drag leave
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        // Handle file drop
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            fileInput.files = e.dataTransfer.files; // Assign dropped file to the input
+            previewImage(file); // Preview the dropped image
+        });
+
+        // Trigger file input click on drop zone click
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Handle file selection via file input
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            previewImage(file); // Preview the selected image
+        });
+
+        // Preview the selected image
+        function previewImage(file) {
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block'; // Show the image preview
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        submitButton.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent the default button behavior
+            if (fileInput.files.length === 0) {
+                alert('Please upload an image first!');
+            } else {
+                form.submit(); // Submit the form
+            }
+        });
+        selectElement.addEventListener('change', function () {
+            if (selectElement.value !== "") {
+                incorrectButton.disabled = false;
+                incorrectButton.style.backgroundColor = "orange";
+            } else {
+                incorrectButton.disabled = true;
+                incorrectButton.style.backgroundColor = "#ccc";
+            }
+        });
+    </script>
+</body>
+</html>
